@@ -1,0 +1,11 @@
+[package]
+name = "authenticationService"
+version = "0.1.0"
+authors = ["IvoSte <36919251+IvoSte@users.noreply.github.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "3"
+actix-web-httpauth = { git = "https://github.com/actix/actix-web-httpauth" }

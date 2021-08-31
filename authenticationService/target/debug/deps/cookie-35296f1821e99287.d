@@ -1,0 +1,12 @@
+S:\Universiteit\Master\Web and Cloud Computing\project\Schrobox\authenticationService\target\debug\deps\cookie-35296f1821e99287.rmeta: C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\lib.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\builder.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\parse.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\jar.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\delta.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\draft.rs
+
+S:\Universiteit\Master\Web and Cloud Computing\project\Schrobox\authenticationService\target\debug\deps\libcookie-35296f1821e99287.rlib: C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\lib.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\builder.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\parse.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\jar.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\delta.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\draft.rs
+
+S:\Universiteit\Master\Web and Cloud Computing\project\Schrobox\authenticationService\target\debug\deps\cookie-35296f1821e99287.d: C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\lib.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\builder.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\parse.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\jar.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\delta.rs C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\draft.rs
+
+C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\lib.rs:
+C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\builder.rs:
+C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\parse.rs:
+C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\jar.rs:
+C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\delta.rs:
+C:\Users\Ivo\.cargo\registry\src\github.com-1ecc6299db9ec823\cookie-0.14.4\src\draft.rs:
