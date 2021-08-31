@@ -1,2 +1,0 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=S:\Universiteit\Master\Web and Cloud Computing\project\Schrobox\authenticationService\target\debug\build\typenum-cdee1b4bdfe7608a\out\consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=S:\Universiteit\Master\Web and Cloud Computing\project\Schrobox\authenticationService\target\debug\build\typenum-cdee1b4bdfe7608a\out\op.rs
