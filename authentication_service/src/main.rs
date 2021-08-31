@@ -10,6 +10,8 @@ mod handlers;
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=debug");
 
+    println!("Starting Authentication Service...");
+
     // Start http server
     HttpServer::new(move || {
         App::new()
