@@ -1,0 +1,34 @@
+version: '3.8'
+
+services: 
+    schro-auth:
+        build: ./authentication_service
+        image: schro-auth-img:latest
+        ports:
+            - "80:${AUTH_PORT_HTTP}"
+            - "443:${AUTH_PORT}"
+        env_file:
+            - ./env_files/auth.env
+            - ./env_files/database.env
+        environment:
+            - JWT_CLAIM_ISSUER=${JWT_CLAIM_ISSUER}
+            - JWT_ACCESS_EXPIRE_TIME=${JWT_ACCESS_EXPIRE_TIME}
+            - JWT_REFRESH_EXPIRE_TIME=${JWT_REFRESH_EXPIRE_TIME}
+            - DB_COLLECTION=${DB_REFRESH_COLLECTION}
+        networks: 
+            - schro-net
+    
+    schro-database:
+        build: ./database_service
+        image: schro-database-img:latest
+        expose:
+            - "${DB_PORT}"
+        env_file:
+            - ./.env
+            - ./env_files/database.env
+        volumes:
+            - ${DATABASE_VOLUME}:/data/db
+        networks: 
+            - schro-net
+networks: 
+    schro-net:
