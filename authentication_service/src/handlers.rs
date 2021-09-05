@@ -1,7 +1,9 @@
 use actix_web::{web, HttpResponse};
 use mongodb::{bson::doc};
 use serde::{Deserialize, Serialize};
+use jsonwebtoken::{encode, Header, EncodingKey};
 use log::info;
+use chrono::{UTC, Duration};
 
 #[derive(Deserialize, Serialize)]
 pub struct User {
@@ -10,11 +12,24 @@ pub struct User {
     email: String,
 }
 
+
+
 #[derive(Deserialize)]
 pub struct UserLogin {
     username: String,
     password: String,
+
 }
+
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    company: String,
+    exp: usize,
+}
+
+
 
 pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>) -> HttpResponse {
     // TODO: Remove unwraps and handle them properly
@@ -34,9 +49,22 @@ pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>)
     }
 
 
-    // TODO: Return JWT token
+    // Generate JWT Token
+    let expiration_time = UTC::now()
+        .checked_add_signed(Duration::minutes(30))
+        .expect("valid timestamp")
+        .timestamp();
 
-    HttpResponse::Ok().body("login successfull")
+    let my_claims = Claims {
+        sub: user.username.to_owned(),
+        company: "amigos".to_owned(),
+        // TODO: Get JWT expiration from config file
+        exp: expiration_time as usize,
+    };
+
+    let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret("sks84fkls0vjJSk3#@jfD!kfdsvc".as_ref())).unwrap();
+
+    HttpResponse::Ok().json(token)
 }
 
 pub async fn get_user_by_id() -> HttpResponse {
@@ -53,7 +81,6 @@ pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> 
     let new_user = doc! {
         "username": &user.username,
         "email": &user.email,
-        // TODO: Encrypt the password
         "password": bcrypt::hash(&user.password, bcrypt::DEFAULT_COST).unwrap(),
     };
 
