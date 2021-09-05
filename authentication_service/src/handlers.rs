@@ -10,15 +10,38 @@ pub struct User {
     email: String,
 }
 
-pub async fn get_users() -> HttpResponse {
-    HttpResponse::Ok().body("get user not implemented yet")
+#[derive(Deserialize)]
+pub struct UserLogin {
+    username: String,
+    password: String,
+}
+
+pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>) -> HttpResponse {
+    // TODO: Remove unwraps and handle them properly
+    let user_service = &data.service_container.user;
+
+    let query = doc! {
+        "username": &user.username,
+    };
+
+    let existing_user = user_service.get(query).await.unwrap().unwrap();
+
+    if existing_user.get("password").unwrap().as_str().unwrap() != user.password {
+        return HttpResponse::Unauthorized().body("Wrong Password");
+    }
+
+
+    // TODO: Return JWT token
+
+    HttpResponse::Ok().body("login successfull")
 }
 
 pub async fn get_user_by_id() -> HttpResponse {
     HttpResponse::Ok().body("get user by id not implemented yet")
 }
 
-pub async fn add_user(user: web::Json<User>, data: web::Data<crate::AppState>) -> HttpResponse {
+pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> HttpResponse {
+    // TODO: Remove unwraps and handle them properly
     // Get the User Collection Interface
     let user_service = &data.service_container.user;
 

@@ -24,13 +24,11 @@ pub struct AppState {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    // Logger related
     std::env::set_var("RUST_LOG", "actix_web=debug");
     Builder::new()
         .filter(None, LevelFilter::Info)
         .init();
-
-    // env_logger::init();
-    // env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     // Parse your connection string into an options struct
     let client_options =
@@ -60,8 +58,8 @@ async fn main() -> std::io::Result<()> {
                 service_container,
             })
             .wrap(Logger::default())
-            .route("/login", web::post().to(handlers::get_users))
-            .route("/signup", web::post().to(handlers::add_user))
+            .route("/login", web::post().to(handlers::login))
+            .route("/signup", web::post().to(handlers::signup))
             .route("/users/{id}", web::get().to(handlers::get_user_by_id))
             .route("/users/{id}", web::delete().to(handlers::delete_user))
     })
