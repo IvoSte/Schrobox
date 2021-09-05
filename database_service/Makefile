@@ -13,7 +13,7 @@ build:
 	docker build -t schrodat .
 
 run:
-	docker run --env-file ./database.env --env-file ./auth.env -p 27017:27017 schrodat 
+	docker run --env-file ./database.env --env-file ./auth.env --network=$(NETWORKNAME) -p 27017:27017 schrodat 
 
 run-detached:
-	docker run --env-file ./database.env --env-file ./auth.env -p 27017:27017 -d schrodat 
+	docker run --env-file ./database.env --env-file ./auth.env --network=$(NETWORKNAME) -p 27017:27017 -d schrodat 
