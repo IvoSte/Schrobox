@@ -30,6 +30,10 @@ async fn main() -> std::io::Result<()> {
         .filter(None, LevelFilter::Info)
         .init();
 
+    // let hashed = bcrypt::hash("strong_password", bcrypt::DEFAULT_COST).unwrap();
+    // let valid = bcrypt::verify("strong_password", &hashed);
+    // println!("valid?: {}", valid.unwrap());
+
     // Parse your connection string into an options struct
     let client_options =
         ClientOptions::parse("mongodb://main_admin:abc123@0.0.0.0:27017")

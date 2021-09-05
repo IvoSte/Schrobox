@@ -25,8 +25,11 @@ pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>)
     };
 
     let existing_user = user_service.get(query).await.unwrap().unwrap();
+    // TODO: Check for non-existing users
 
-    if existing_user.get("password").unwrap().as_str().unwrap() != user.password {
+    println!("{} == {}", user.password, existing_user.get("password").unwrap().as_str().unwrap());
+
+    if !bcrypt::verify(&user.password, existing_user.get("password").unwrap().as_str().unwrap()).unwrap() {
         return HttpResponse::Unauthorized().body("Wrong Password");
     }
 
@@ -45,15 +48,16 @@ pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> 
     // Get the User Collection Interface
     let user_service = &data.service_container.user;
 
+    // TODO: Check for duplicates
     // Create the new user
     let new_user = doc! {
         "username": &user.username,
         "email": &user.email,
         // TODO: Encrypt the password
-        "password": &user.password,
+        "password": bcrypt::hash(&user.password, bcrypt::DEFAULT_COST).unwrap(),
     };
 
-    info!("inserted {}", new_user.get("username").unwrap());
+    info!("inserted {} with password {}", new_user.get("username").unwrap(),new_user.get("password").unwrap());
 
     // Insert new user into database
     let _ = user_service.create(new_user.clone()).await.unwrap();
