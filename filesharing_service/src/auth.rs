@@ -1,8 +1,11 @@
-use actix_web::{http::StatusCode, Error, error, HttpRequest, HttpResponse, dev::Payload, FromRequest};
 use actix_http::{http::header, ResponseBuilder};
-use futures::future;
-use serde::{Serialize, Deserialize};
+use actix_web::{
+    dev::Payload, error, http::StatusCode, Error, FromRequest, HttpRequest, HttpResponse,
+};
+use log::debug;
 use derive_more::{Display, Error};
+use futures::future;
+use serde::{Deserialize, Serialize};
 
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 
@@ -46,17 +49,16 @@ impl FromRequest for User {
     type Future = future::Ready<Result<Self, Self::Error>>;
     type Config = ();
 
-    fn from_request(req: &HttpRequest, payload: &mut Payload) -> Self::Future {
+    fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
         if let Some(token) = req.headers().get("Authorization") {
             match verify_jwt(&token.to_str().unwrap()) {
                 Ok(token_data) => {
-
                     let user = User {
-                        username: token_data.sub
+                        username: token_data.sub,
                     };
 
                     future::ready(Ok(user))
-                },
+                }
                 Err(e) => future::ready(Err(e)),
             }
         } else {
@@ -66,16 +68,22 @@ impl FromRequest for User {
 }
 
 fn verify_jwt(token: &str) -> Result<Claims, Error> {
-    // token.split()
+    let split_token = token.split_whitespace();
+    let split_token_vec = &split_token.collect::<Vec<&str>>();
+
+    // TODO: Check if the token size is correct, should be 2
+
     let token_message = decode::<Claims>(
-        &token,
+        &split_token_vec[1],
         // TODO: Get secret from config and randomly generate it
         &DecodingKey::from_secret("sks84fkls0vjJSk3#@jfD!kfdsvc".as_ref()),
         &Validation::new(Algorithm::HS256),
     );
-    println!("{}", token);
     match token_message {
         Ok(token_data) => Ok(token_data.claims),
-        Err(error) => Err(Error::from(AuthError::UnauthorizedError)),
+        Err(error) => {
+            debug!("error while verifying jwt token: {}", error);
+            return Err(Error::from(AuthError::UnauthorizedError));
+        },
     }
 }
