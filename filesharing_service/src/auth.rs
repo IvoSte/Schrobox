@@ -1,35 +1,81 @@
-use actix_web_httpauth::extractors::bearer::{BearerAuth, Config};
-use actix_web::{dev::ServiceRequest, Error};
-use actix_web_httpauth::extractors::AuthenticationError;
-use log::info;
+use actix_web::{http::StatusCode, Error, error, HttpRequest, HttpResponse, dev::Payload, FromRequest};
+use actix_http::{http::header, ResponseBuilder};
+use futures::future;
+use serde::{Serialize, Deserialize};
+use derive_more::{Display, Error};
 
-fn validate_token(str: &str) -> Result<bool, std::io::Error>
-{
-    println!("validating token...");
-    if str.eq("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJcImpvaG5kb2U0M1wiIiwiY29tcGFueSI6ImFtaWdvcyIsImV4cCI6MTYzMDk0MzM0MX0.Tx4M3DsLs_mp_SykbmpK7RK6xaC418BEJWYN_i5nDu4")
-    {
-        println!("Validating token to be Okay");
-        return Ok(true);
-    }
-    println!("Token Invalid!");
-    return Err(std::io::Error::new(std::io::ErrorKind::Other, "Authentication failed!"));
+use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+
+#[derive(Debug, Display, Error)]
+enum AuthError {
+    #[display(fmt = "unauthorized")]
+    UnauthorizedError,
+
+    #[display(fmt = "bad request")]
+    BadRequestError,
 }
 
-pub async fn validator(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, Error> {
-    println!("starting validation");
-    let config = req
-        .app_data::<Config>()
-        .map(|data| data.clone())
-        .unwrap_or_else(Default::default);
-    info!("{}", credentials.token());
-    match validate_token(credentials.token()) {
-        Ok(res) => {
-            if res == true {
-                Ok(req)
-            } else {
-                Err(AuthenticationError::from(config).into())
-            }
+impl error::ResponseError for AuthError {
+    fn error_response(&self) -> HttpResponse {
+        ResponseBuilder::new(self.status_code())
+            .set_header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(self.to_string())
+    }
+
+    fn status_code(&self) -> StatusCode {
+        match *self {
+            AuthError::UnauthorizedError => StatusCode::UNAUTHORIZED,
+            AuthError::BadRequestError => StatusCode::BAD_REQUEST,
         }
-        Err(_) => Err(AuthenticationError::from(config).into()),
+    }
+}
+
+pub struct User {
+    pub username: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    company: String,
+    exp: usize,
+}
+
+impl FromRequest for User {
+    type Error = Error;
+    type Future = future::Ready<Result<Self, Self::Error>>;
+    type Config = ();
+
+    fn from_request(req: &HttpRequest, payload: &mut Payload) -> Self::Future {
+        if let Some(token) = req.headers().get("Authorization") {
+            match verify_jwt(&token.to_str().unwrap()) {
+                Ok(token_data) => {
+
+                    let user = User {
+                        username: token_data.sub
+                    };
+
+                    future::ready(Ok(user))
+                },
+                Err(e) => future::ready(Err(e)),
+            }
+        } else {
+            future::ready(Err(Error::from(AuthError::BadRequestError)))
+        }
+    }
+}
+
+fn verify_jwt(token: &str) -> Result<Claims, Error> {
+    // token.split()
+    let token_message = decode::<Claims>(
+        &token,
+        // TODO: Get secret from config and randomly generate it
+        &DecodingKey::from_secret("sks84fkls0vjJSk3#@jfD!kfdsvc".as_ref()),
+        &Validation::new(Algorithm::HS256),
+    );
+    println!("{}", token);
+    match token_message {
+        Ok(token_data) => Ok(token_data.claims),
+        Err(error) => Err(Error::from(AuthError::UnauthorizedError)),
     }
 }

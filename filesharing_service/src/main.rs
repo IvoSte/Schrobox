@@ -1,12 +1,11 @@
-use actix_web_httpauth::middleware::HttpAuthentication;
 use actix_web::{middleware::Logger, web, App, HttpServer, HttpResponse};
 use env_logger::Builder;
 use log::LevelFilter;
 
 mod auth;
 
-pub async fn filestorage() -> HttpResponse {
-    HttpResponse::Ok().body("You have succesfully send us a file")
+pub async fn filestorage(authed_user: auth::User) -> HttpResponse {
+    HttpResponse::Ok().body(format!("hello {}!", authed_user.username))
 }
 
 #[actix_rt::main]
@@ -19,10 +18,7 @@ async fn main() -> std::io::Result<()> {
 
     // Start http server
     HttpServer::new(move || {
-        let auth = HttpAuthentication::bearer(auth::validator);
-
         App::new()
-            .wrap(auth)
             .wrap(Logger::default())
             .route("/filestorage", web::post().to(filestorage))
     })
