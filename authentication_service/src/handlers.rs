@@ -1,11 +1,17 @@
 use actix_web::{web, HttpResponse};
 use mongodb::{bson::doc};
 use serde::{Deserialize, Serialize};
-use jsonwebtoken::{encode, Header, EncodingKey};
-use log::info;
-use chrono::{UTC, Duration};
 use std::collections::HashMap;
 
+use super::jwt;
+
+use pbkdf2::{
+    password_hash::{
+        rand_core::OsRng,
+        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
+    },
+    Pbkdf2
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct User {
@@ -17,32 +23,24 @@ pub struct User {
 }
 
 
-
 #[derive(Deserialize)]
 pub struct UserLogin {
     email: String,
     password: String,
-
 }
 
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    sub: String,
-    company: String,
-    exp: usize,
-}
 
 pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>) -> HttpResponse {
     // TODO: Remove unwraps and handle them properly
     let user_service = &data.service_container.user;
 
+
+    // Get the existing user from the database if it exists
+    // If it does not exist, return an Internal Server Error
     let query = doc! {
         "email": &user.email,
     };
 
-    // Get the existing user from the database if it exists
-    // If it does not exist, return an Internal Server Error
     let existing_user = user_service.get(query).await;
     let existing_user = match existing_user.unwrap() {
         Some(user_data) => user_data,
@@ -53,26 +51,14 @@ pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>)
     };
 
     // Verify the password
-    if !bcrypt::verify(&user.password, existing_user.get("password").unwrap().as_str().unwrap()).unwrap() {
+    // if !bcrypt::verify(&user.password, existing_user.get("password").unwrap().as_str().unwrap()).unwrap() {
+    let parsed_hash = PasswordHash::new(existing_user.get("password").unwrap().as_str().unwrap()).unwrap();
+    if !Pbkdf2.verify_password(&user.password.as_bytes(), &parsed_hash).is_ok() {
         return HttpResponse::Unauthorized().body("Wrong Password");
     }
 
-    // Generate JWT Token
-    // TODO: Get JWT expiration from config file
-    let expiration_time = UTC::now()
-        .checked_add_signed(Duration::minutes(30))
-        .expect("valid timestamp")
-        .timestamp();
-
-    let my_claims = Claims {
-        sub: existing_user.get("username").unwrap().to_string(),
-        company: "amigos".to_owned(),
-        exp: expiration_time as usize,
-    };
-
-    // TODO: Add a refresh token
-    // TODO: Generate a safe encryption key and get it from a config file
-    let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret("sks84fkls0vjJSk3#@jfD!kfdsvc".as_ref())).unwrap();
+    // Generate JWT token
+    let token = jwt::generate_jwt_token(existing_user.get("username").unwrap().to_string()).unwrap();
 
 
     // Create the payload that is to be returned
@@ -94,9 +80,13 @@ pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> 
         "email": &user.email,
     };
     let existing_user = user_service.get(query).await;
-    if let Some(_) = existing_user.unwrap() {
+    if existing_user.unwrap().is_some() {
         return HttpResponse::InternalServerError().body("User already exists");
     };
+
+    // Hash password with salt to PHC string ($pbkdf2-sha256$...)
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = Pbkdf2.hash_password(&user.password.as_bytes(), &salt).unwrap().to_string();
 
     // Create the new user
     let new_user = doc! {
@@ -104,15 +94,13 @@ pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> 
         "username": &user.username,
         "first_name": &user.first_name,
         "last_name": &user.last_name,
-        "password": bcrypt::hash(&user.password, bcrypt::DEFAULT_COST).unwrap(),
+        "password": password_hash,
     };
-
-    info!("inserted {} with password {}", new_user.get("username").unwrap(),new_user.get("password").unwrap());
 
     // Insert new user into database
     let _ = user_service.create(new_user.clone()).await.unwrap();
 
-    // Respond with Created code and JSON of new user
+    // Respond with Created code
     HttpResponse::Created().body("success")
 }
 

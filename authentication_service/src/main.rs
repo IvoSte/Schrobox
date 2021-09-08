@@ -8,6 +8,7 @@ use log::info;
 
 mod handlers;
 mod users;
+mod jwt;
 
 pub struct ServiceContainer {
     user: UserService,
