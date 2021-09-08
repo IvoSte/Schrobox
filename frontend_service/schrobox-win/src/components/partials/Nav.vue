@@ -18,9 +18,9 @@
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
-          <a class="button is-dark">
+          <router-link to="/login" class="button is-dark">
             <strong>Sign In</strong>
-          </a>
+          </router-link>
         </div>
       </div>
     </div>
