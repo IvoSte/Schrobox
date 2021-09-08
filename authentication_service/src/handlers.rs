@@ -13,6 +13,8 @@ use pbkdf2::{
     Pbkdf2
 };
 
+use argonautica::{Hasher, Verifier};
+
 #[derive(Deserialize, Serialize)]
 pub struct User {
     username: String,
@@ -52,8 +54,18 @@ pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>)
 
     // Verify the password
     // if !bcrypt::verify(&user.password, existing_user.get("password").unwrap().as_str().unwrap()).unwrap() {
-    let parsed_hash = PasswordHash::new(existing_user.get("password").unwrap().as_str().unwrap()).unwrap();
-    if !Pbkdf2.verify_password(&user.password.as_bytes(), &parsed_hash).is_ok() {
+    // let parsed_hash = PasswordHash::new(existing_user.get("password").unwrap().as_str().unwrap()).unwrap();
+    // if !Pbkdf2.verify_password(&user.password.as_bytes(), &parsed_hash).is_ok() {
+    let mut verifier = Verifier::default();
+    let is_valid_password = verifier
+        .with_hash(existing_user.get("password").unwrap().as_str().unwrap())
+        .with_password(&user.password)
+        // TODO: Generate securely
+        .with_secret_key("sks84fkls0vjJSk3#@jfD!kfdsvc")
+        .verify()
+        .unwrap();
+
+    if !is_valid_password {
         return HttpResponse::Unauthorized().body("Wrong Password");
     }
 
@@ -85,8 +97,14 @@ pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> 
     };
 
     // Hash password with salt to PHC string ($pbkdf2-sha256$...)
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Pbkdf2.hash_password(&user.password.as_bytes(), &salt).unwrap().to_string();
+    // let salt = SaltString::generate(&mut OsRng);
+    // let password_hash = Pbkdf2.hash_password(&user.password.as_bytes(), &salt).unwrap().to_string();
+    let mut hasher = Hasher::default();
+    let password_hash = hasher
+        .with_password(&user.password)
+        .with_secret_key("sks84fkls0vjJSk3#@jfD!kfdsvc")
+        .hash()
+        .unwrap();
 
     // Create the new user
     let new_user = doc! {

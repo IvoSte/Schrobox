@@ -20,3 +20,4 @@ bson = "2.0.0-beta.3"
 jsonwebtoken = "7.2.0"
 pbkdf2 = "0.9"
 rand_core = { version = "0.6", features = ["std"] }
+argonautica = { version = "0.2", features = ["simd"] }
