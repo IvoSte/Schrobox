@@ -5,13 +5,13 @@ use std::collections::HashMap;
 
 use super::jwt;
 
-use pbkdf2::{
-    password_hash::{
-        rand_core::OsRng,
-        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-    },
-    Pbkdf2
-};
+// use pbkdf2::{
+//     password_hash::{
+//         rand_core::OsRng,
+//         PasswordHash, PasswordHasher, PasswordVerifier, SaltString
+//     },
+//     Pbkdf2
+// };
 
 use argonautica::{Hasher, Verifier};
 
@@ -52,10 +52,11 @@ pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>)
         },
     };
 
-    // Verify the password
-    // if !bcrypt::verify(&user.password, existing_user.get("password").unwrap().as_str().unwrap()).unwrap() {
+    // Verify the password using pbkdf2
     // let parsed_hash = PasswordHash::new(existing_user.get("password").unwrap().as_str().unwrap()).unwrap();
-    // if !Pbkdf2.verify_password(&user.password.as_bytes(), &parsed_hash).is_ok() {
+    // let is_valid_password = Pbkdf2.verify_password(&user.password.as_bytes(), &parsed_hash).is_ok();
+
+    // Verify the password using argon
     let mut verifier = Verifier::default();
     let is_valid_password = verifier
         .with_hash(existing_user.get("password").unwrap().as_str().unwrap())
