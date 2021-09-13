@@ -1,13 +1,13 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
-use mongodb::{bson::doc, options::ClientOptions, Client};
-use users::UserService;
+use mongodb::{options::ClientOptions, Client};
+use user_api::UserService;
 use env_logger::Builder;
 use log::LevelFilter;
 use log::info;
-
+use std::env;
+use dotenv;
 
 mod handlers;
-mod users;
 mod jwt;
 
 pub struct ServiceContainer {
@@ -26,6 +26,10 @@ pub struct AppState {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    info!("Starting authentication service...");
+    // Load env file
+    dotenv::dotenv().ok();
+
     // Logger related
     std::env::set_var("RUST_LOG", "actix_web=debug");
     Builder::new()
@@ -34,21 +38,13 @@ async fn main() -> std::io::Result<()> {
 
     // Parse your connection string into an options struct
     let client_options =
-        ClientOptions::parse("mongodb://main_admin:abc123@0.0.0.0:27017")
+        ClientOptions::parse(format!("mongodb://{}:{}@{}:{}", env::var("MONGODB_USER").unwrap(), env::var("MONGODB_PASS").unwrap(), env::var("MONGODB_HOST").unwrap(), env::var("MONGODB_PORT").unwrap()).as_ref())
         .await
         .unwrap();
     let client = Client::with_options(client_options).unwrap();
 
-    // Check if the mongo connection is successfull
-    let _ = client
-        .database("admin")
-        .run_command(doc! {"ping": 1}, None)
-        .await
-        .unwrap();
-    info!("Connected to database successfully.");
-
-    let db = client.database("schro-database");
-    let user_collection = db.collection("users");
+    let db = client.database(&env::var("MONGODB_DB_NAME").unwrap());
+    let user_collection = db.collection(&env::var("MONGODB_USER_COLLECTION").unwrap());
 
     // Start http server
     HttpServer::new(move || {
@@ -64,7 +60,7 @@ async fn main() -> std::io::Result<()> {
             .route("/users/{id}", web::get().to(handlers::get_user_by_id))
             .route("/users/{id}", web::delete().to(handlers::delete_user))
     })
-    .bind("127.0.0.1:8080")?
+    .bind(format!("{}:{}", env::var("AUTH_HOST").unwrap(), env::var("AUTH_PORT").unwrap()))?
     .run()
     .await
 }

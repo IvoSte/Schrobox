@@ -1,29 +1,12 @@
 use actix_web::{web, HttpResponse};
 use mongodb::{bson::doc};
-use serde::{Deserialize, Serialize};
+use argonautica::{Hasher, Verifier};
+use serde::{Deserialize};
 use std::collections::HashMap;
+use user_api::models::User;
+
 
 use super::jwt;
-
-// use pbkdf2::{
-//     password_hash::{
-//         rand_core::OsRng,
-//         PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-//     },
-//     Pbkdf2
-// };
-
-use argonautica::{Hasher, Verifier};
-
-#[derive(Deserialize, Serialize)]
-pub struct User {
-    username: String,
-    first_name: String,
-    last_name: String,
-    password: String,
-    email: String,
-}
-
 
 #[derive(Deserialize)]
 pub struct UserLogin {

@@ -2,28 +2,35 @@ use jsonwebtoken::{encode, Header, EncodingKey, errors::Error};
 use chrono::{UTC, Duration};
 use serde::{Deserialize, Serialize};
 
+lazy_static::lazy_static! {
+    static ref SECRET_KEY: String = std::env::var("JWT_SECRET_KEY").unwrap();
+    static ref CLAIM_ISSUER: String = std::env::var("JWT_ISSUER").unwrap();
+    static ref EXPIRATION_TIME: i64 = std::env::var("JWT_EXPIRE_TIME").unwrap().parse::<i64>().unwrap();
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
     sub: String,
-    company: String,
     exp: usize,
+    iss: String,
+    iat: usize,
 }
 
 pub fn generate_jwt_token(username: String) -> Result<String, Error> {
     // Generate JWT Token
-    // TODO: Get JWT expiration from config file
     let expiration_time = UTC::now()
-        .checked_add_signed(Duration::minutes(30))
+        .checked_add_signed(Duration::minutes(*EXPIRATION_TIME))
         .expect("valid timestamp")
         .timestamp();
 
     let my_claims = Claims {
         sub: username.to_string(),
-        company: "amigos".to_owned(),
         exp: expiration_time as usize,
+        iss: CLAIM_ISSUER.to_string(),
+        iat: UTC::now().timestamp() as usize,
     };
 
-    // TODO: Add a refresh token
-    // TODO: Generate a safe encryption key and get it from a config file
-    encode(&Header::default(), &my_claims, &EncodingKey::from_secret("sks84fkls0vjJSk3#@jfD!kfdsvc".as_ref()))
+    encode(&Header::default(), &my_claims, &EncodingKey::from_secret(SECRET_KEY.as_bytes()))
 }
+
+// TODO: Add a refresh token
