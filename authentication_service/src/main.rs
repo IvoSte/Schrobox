@@ -26,14 +26,9 @@ async fn main() -> std::io::Result<()> {
         .filter(None, LevelFilter::Info)
         .init();
 
-    // Parse your connection string into an options struct
-    let client_options =
-        ClientOptions::parse(format!("mongodb://{}:{}@{}:{}", env::var("MONGODB_USER").unwrap(), env::var("MONGODB_PASS").unwrap(), env::var("MONGODB_HOST").unwrap(), env::var("MONGODB_PORT").unwrap()).as_ref())
-        .await
-        .unwrap();
-    let client = Client::with_options(client_options).unwrap();
+    // Get the relevant collections
+    let db = setup_database().await;
 
-    let db = client.database(&env::var("MONGODB_DB_NAME").unwrap());
     let user_collection = db.collection(&env::var("MONGODB_USER_COLLECTION").unwrap());
 
     // Start http server
@@ -53,4 +48,15 @@ async fn main() -> std::io::Result<()> {
     .bind(format!("{}:{}", env::var("AUTH_HOST").unwrap(), env::var("AUTH_PORT").unwrap()))?
     .run()
     .await
+}
+
+async fn setup_database() -> mongodb::Database {
+    // Parse your connection string into an options struct
+    let client_options =
+        ClientOptions::parse(format!("mongodb://{}:{}@{}:{}", env::var("MONGODB_USER").unwrap(), env::var("MONGODB_PASS").unwrap(), env::var("MONGODB_HOST").unwrap(), env::var("MONGODB_PORT").unwrap()).as_ref())
+        .await
+        .unwrap();
+    let client = Client::with_options(client_options).unwrap();
+
+    client.database(&env::var("MONGODB_DB_NAME").unwrap())
 }
