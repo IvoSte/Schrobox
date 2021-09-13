@@ -17,7 +17,7 @@ pub struct UserLogin {
 
 pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>) -> HttpResponse {
     // TODO: Remove unwraps and handle them properly
-    let user_service = &data.service_container.user;
+    let user_service = &data.user_service;
 
 
     // Get the existing user from the database if it exists
@@ -69,7 +69,7 @@ pub async fn login(data: web::Data<crate::AppState>, user: web::Json<UserLogin>)
 pub async fn signup(data: web::Data<crate::AppState>, user: web::Json<User>) -> HttpResponse {
     // TODO: Remove unwraps and handle them properly
     // Get the User Collection Interface
-    let user_service = &data.service_container.user;
+    let user_service = &data.user_service;
 
     // Check if user already exists
     let query = doc! {

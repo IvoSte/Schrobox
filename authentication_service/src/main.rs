@@ -10,18 +10,8 @@ use dotenv;
 mod handlers;
 mod jwt;
 
-pub struct ServiceContainer {
-    user: UserService,
-}
-
-impl ServiceContainer {
-    pub fn new(user: UserService) -> Self {
-        ServiceContainer { user }
-    }
-}
-
 pub struct AppState {
-    service_container: ServiceContainer,
+    user_service: UserService,
 }
 
 #[actix_rt::main]
@@ -49,10 +39,10 @@ async fn main() -> std::io::Result<()> {
     // Start http server
     HttpServer::new(move || {
 
-        let service_container = ServiceContainer::new(UserService::new(user_collection.clone()));
+        let user_service = UserService::new(user_collection.clone());
         App::new()
             .data(AppState {
-                service_container,
+                user_service,
             })
             .wrap(Logger::default())
             .route("/login", web::post().to(handlers::login))
