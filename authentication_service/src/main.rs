@@ -1,61 +1,43 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
-use mongodb::{bson::doc, options::ClientOptions, Client};
-use users::UserService;
+use mongodb::{options::ClientOptions, Client};
+use user_api::UserService;
 use env_logger::Builder;
 use log::LevelFilter;
 use log::info;
-
+use std::env;
+use dotenv;
 
 mod handlers;
-mod users;
-
-pub struct ServiceContainer {
-    user: UserService,
-}
-
-impl ServiceContainer {
-    pub fn new(user: UserService) -> Self {
-        ServiceContainer { user }
-    }
-}
+mod jwt;
 
 pub struct AppState {
-    service_container: ServiceContainer,
+    user_service: UserService,
 }
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    info!("Starting authentication service...");
+    // Load env file
+    dotenv::dotenv().ok();
+
     // Logger related
     std::env::set_var("RUST_LOG", "actix_web=debug");
     Builder::new()
         .filter(None, LevelFilter::Info)
         .init();
 
-    // Parse your connection string into an options struct
-    let client_options =
-        ClientOptions::parse("mongodb://main_admin:abc123@0.0.0.0:27017")
-        .await
-        .unwrap();
-    let client = Client::with_options(client_options).unwrap();
+    // Get the relevant collections
+    let db = setup_database().await;
 
-    // Check if the mongo connection is successfull
-    let _ = client
-        .database("admin")
-        .run_command(doc! {"ping": 1}, None)
-        .await
-        .unwrap();
-    info!("Connected to database successfully.");
-
-    let db = client.database("schro-database");
-    let user_collection = db.collection("users");
+    let user_collection = db.collection(&env::var("MONGODB_USER_COLLECTION").unwrap());
 
     // Start http server
     HttpServer::new(move || {
 
-        let service_container = ServiceContainer::new(UserService::new(user_collection.clone()));
+        let user_service = UserService::new(user_collection.clone());
         App::new()
             .data(AppState {
-                service_container,
+                user_service,
             })
             .wrap(Logger::default())
             .route("/login", web::post().to(handlers::login))
@@ -63,7 +45,18 @@ async fn main() -> std::io::Result<()> {
             .route("/users/{id}", web::get().to(handlers::get_user_by_id))
             .route("/users/{id}", web::delete().to(handlers::delete_user))
     })
-    .bind("127.0.0.1:8080")?
+    .bind(format!("{}:{}", env::var("AUTH_HOST").unwrap(), env::var("AUTH_PORT").unwrap()))?
     .run()
     .await
+}
+
+async fn setup_database() -> mongodb::Database {
+    // Parse your connection string into an options struct
+    let client_options =
+        ClientOptions::parse(format!("mongodb://{}:{}@{}:{}", env::var("MONGODB_USER").unwrap(), env::var("MONGODB_PASS").unwrap(), env::var("MONGODB_HOST").unwrap(), env::var("MONGODB_PORT").unwrap()).as_ref())
+        .await
+        .unwrap();
+    let client = Client::with_options(client_options).unwrap();
+
+    client.database(&env::var("MONGODB_DB_NAME").unwrap())
 }

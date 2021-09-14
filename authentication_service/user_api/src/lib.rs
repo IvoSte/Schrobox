@@ -1,6 +1,10 @@
+extern crate serde;
+extern crate mongodb;
+
 use mongodb::bson::{Document};
 use mongodb::{error::Error, results::InsertOneResult, Collection};
 
+pub mod models;
 
 #[derive(Clone)]
 pub struct UserService {
@@ -18,5 +22,14 @@ impl UserService {
 
     pub async fn get(&self, query_doc: Document) -> Result<Option<Document>, Error> {
         self.collection.find_one(query_doc, None).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    // TODO: Create tests
+    #[test]
+    fn creating_user() {
+        assert!(true);
     }
 }
