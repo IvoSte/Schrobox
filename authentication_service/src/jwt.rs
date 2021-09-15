@@ -34,3 +34,19 @@ pub fn generate_jwt_token(username: String) -> Result<String, Error> {
 }
 
 // TODO: Add a refresh token
+pub fn generate_jwt_refresh_token(username: String, jwt_token_collection: mongodb::Collection) {
+    // Generate JWT Refresh Token
+    let expiration_time = UTC::now()
+        .checked_add_signed(Duration::minutes(*EXPIRATION_TIME))
+        .expect("valid timestamp")
+        .timestamp();
+
+    let my_claims = Claims {
+        sub: username.to_string(),
+        exp: expiration_time as usize,
+        iss: CLAIM_ISSUER.to_string(),
+        iat: UTC::now().timestamp() as usize,
+    };
+
+    // encode(&Header::default(), &my_claims, &EncodingKey::from_secret(SECRET_KEY.as_bytes()))
+}

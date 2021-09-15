@@ -9,6 +9,13 @@ use serde::{Deserialize, Serialize};
 
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 
+lazy_static::lazy_static! {
+    static ref SECRET_KEY: String = std::env::var("JWT_SECRET_KEY").unwrap();
+    static ref CLAIM_ISSUER: String = std::env::var("JWT_ISSUER").unwrap();
+    static ref EXPIRATION_TIME: i64 = std::env::var("JWT_EXPIRE_TIME").unwrap().parse::<i64>().unwrap();
+}
+
+
 #[derive(Debug, Display, Error)]
 enum AuthError {
     #[display(fmt = "unauthorized")]
@@ -40,8 +47,9 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
     sub: String,
-    company: String,
     exp: usize,
+    iss: String,
+    iat: usize,
 }
 
 impl FromRequest for User {
@@ -67,6 +75,7 @@ impl FromRequest for User {
     }
 }
 
+
 fn verify_jwt(token: &str) -> Result<Claims, Error> {
     let split_token = token.split_whitespace();
     let split_token_vec = &split_token.collect::<Vec<&str>>();
@@ -76,7 +85,7 @@ fn verify_jwt(token: &str) -> Result<Claims, Error> {
     let token_message = decode::<Claims>(
         &split_token_vec[1],
         // TODO: Get secret from config and randomly generate it
-        &DecodingKey::from_secret("sks84fkls0vjJSk3#@jfD!kfdsvc".as_ref()),
+        &DecodingKey::from_secret(SECRET_KEY.as_bytes()),
         &Validation::new(Algorithm::HS256),
     );
     match token_message {
