@@ -7,20 +7,17 @@
         Please use the provided credentials.
     </h2>
         <form @submit.prevent="handleSubmit">
-            <div class="username">
-            Username:
-            </div>
             <div class="username-entry">
-            <input type="text" v-model="username" name="username" />
-            </div>
-            <div class="">
-            Password:
+                <span class=" has-text-black" >Username</span>
+                <input class="input py-4" type="text" v-model="username" name="username" placeholder="Username"/>
             </div>
             <div class="password-entry">
-            <input type="password" v-model="password" name="password" />
+                <span class=" has-text-black" >Password</span>
+                <input class="input py-4" type="password" v-model="password" name="password" placeholder="*************"/>
             </div>
             <div class="button-block">
-            <button class="button is-xl is-dark">Login</button>
+                <button class="login-button button is-xl">Login</button>
+                <button class="create-account-button button is-xl">Create Account</button>
             </div>
         </form>
     </div>
@@ -63,3 +60,50 @@ import { useStore } from "vuex";
       }
     }
 </script>
+
+<style lang="scss" scoped>
+@import '../assets/scss/globals.scss';
+.title{
+    font-size: 3rem;
+    color: $prim-dark;
+}
+.subtitle {
+    color: $prim-dark;
+    margin-bottom: 4rem;
+}
+.username-entry {
+    margin-bottom: 1rem;
+}
+.password-entry {
+    margin-bottom: 2rem;
+}
+.button-block {
+    display: flex;
+    flex-direction: row;
+}
+.button{
+    background-color: $prim-dark;
+    color: $prim-light;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: $prim-dark;
+}
+.login-button {
+    margin-right: 1rem;
+}
+.container{
+    background-color: $prim-light;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 20px;
+    border-style: solid;
+    border-width: 5px;
+    border-color: $prim-dark;
+    padding: 2rem;
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+</style>

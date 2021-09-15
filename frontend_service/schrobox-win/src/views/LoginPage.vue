@@ -1,11 +1,8 @@
 <template>
-<div class="login">
-  <section class="hero is-primary">
-    <div class="hero-body">
+    <div class="container">    
+        <img class="logo" src="../assets/images/Schrobox_logo.png" />
       <LoginBox/>
     </div>
-  </section>
-</div>
 </template>
 
 <script>
@@ -57,5 +54,15 @@ export default {
   }
   .is-xl {
     font-size: 1.7rem;
+  }
+  .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+  }
+  .logo {
+    margin-bottom: 2rem;
+    width: 30%;
   }
 </style>
